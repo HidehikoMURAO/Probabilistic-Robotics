@@ -1,38 +1,23 @@
 #----1---+----2----+----3----+----4----+----5----+----6----+----7----+----8----+
+# ガウス分布
 import math
+def p(z, mu = 209.7, dev = 23.4):
+    return math.exp(-(z -mu)**2 / (2*dev))/math.sqrt(2*math.pi*dev)
+def prob(z, width = 0.5): 
+    return width*(p(z - width) + p(z + width))
+
+# グラフの描画
+zs = range(190, 230)
+ys = [p(z) for z in zs]
+
 import matplotlib.pyplot as plt
 import pandas as pd
-
-# データの読み込み
 data = pd.read_csv("sensor_data_200.txt", delimiter = " ",
                   header = None, names = ("data", "time", "ir", "lidar"))
 freqs = pd.DataFrame(data["lidar"].value_counts())
 freqs["probs"] = freqs["lidar"] / len(data["lidar"])
 
-# 確率密度関数
-mean1 = sum(data["lidar"].values)/len(data["lidar"].values)
-
-zs = data["lidar"].values
-mean = sum(zs) / len (zs)
-diff_square = [(z -mean)**2 for z in zs]
-sampling_var = sum(diff_square)/(len(zs))
-stddev1 = math.sqrt(sampling_var)
-
-# グラフの描画
-from scipy.stats import norm
-
-zs = range(190, 230)
-ys = [norm.pdf(z, mean1, stddev1) for z in zs]
-
-plt.plot(zs, ys)
-plt.show()
-
-ys = [norm.cdf(z, mean1, stddev1) for z in zs]
-
-plt.plot(zs, ys, color = "red")
-plt.show()
-
-ys = [norm.cdf(z + 0.5, mean1, stddev1) - norm.cdf(z - 0.5, mean1, stddev1) for z in zs]
-
-plt.bar(zs, ys)
+plt.bar(zs, ys, color = "red", alpha = 0.3) # Make graphs transparent with alpha
+f = freqs["probs"].sort_index()
+plt.bar(f.index, f.values, color = "blue", alpha = 0.3)
 plt.show()
